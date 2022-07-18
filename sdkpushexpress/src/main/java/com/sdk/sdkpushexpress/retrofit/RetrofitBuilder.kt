@@ -5,10 +5,11 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.security.KeyStore
 import java.util.*
+import java.util.concurrent.TimeUnit
 import javax.net.ssl.*
 
 
-internal class RetrofitBuilder {
+internal class RetrofitBuilder(commonUrl: String) {
 
     private var retrofit: Retrofit
     var sdkService: ApiService
@@ -17,7 +18,7 @@ internal class RetrofitBuilder {
     init {
         retrofit = Retrofit.Builder()
             .client(getUnsafeOkHttpClient())
-            .baseUrl("https://google.com")
+            .baseUrl(commonUrl)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
         sdkService = retrofit.create(ApiService::class.java)
@@ -38,6 +39,9 @@ internal class RetrofitBuilder {
         sslContext.init(null, arrayOf<TrustManager>(trustManager), java.security.SecureRandom())
         val sslSocketFactory = sslContext.socketFactory
         return OkHttpClient.Builder()
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .writeTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.SECONDS)
             .retryOnConnectionFailure(true)
             .followRedirects(true)
             .followSslRedirects(true)
